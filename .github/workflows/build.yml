@@ -63,11 +63,20 @@ jobs:
           flatpak list --app --columns=application,branch
           flatpak uninstall --user -y "${APP_ID}" || true
 
+      - name: Compute checksum
+        run: |
+          set -eu
+          sha256sum "${APP_ID}.flatpak" | tee sha256.txt
+          SHA=$(sha256sum "${APP_ID}.flatpak" | awk '{print $1}')
+          echo "SHA256_FULL=${SHA}  ${APP_ID}.flatpak" >> "$GITHUB_ENV"
+
       - name: Generate release notes
         run: |
           set -eu
           DATE=$(date +%Y%m%d)
-          echo "TAG=v${SOH_VERSION}-${DATE}" >> "$GITHUB_ENV"
+          TAG=v${SOH_VERSION}-${DATE}
+          echo "TAG=${TAG}" >> "$GITHUB_ENV"
+          echo "RELEASE_TITLE=Ship of Harkinian ${SOH_VERSION} Flatpak (${TAG})" >> "$GITHUB_ENV"
           {
             echo "# Ship of Harkinian (SoH) Flatpak"
             echo ""
@@ -102,7 +111,7 @@ jobs:
             echo ""
             echo "## 文件校验 (SHA256)"
             echo '```'
-            sha256sum ${APP_ID}.flatpak
+            echo "${SHA256_FULL}"
             echo '```'
             echo ""
             echo "## 上游项目"
@@ -125,7 +134,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.TAG }}
-          name: SoH ${SOH_VERSION} Flatpak (${{ env.TAG }})
+          name: ${{ env.RELEASE_TITLE }}
           body_path: ${{ github.workspace }}/release.txt
           files: ${{ github.workspace }}/${{ env.APP_ID }}.flatpak
           overwrite_files: true
