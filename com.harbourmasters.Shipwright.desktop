@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Ship of Harkinian
+GenericName=The Legend of Zelda: Ocarina of Time (PC Port)
+Comment=Native PC port of The Legend of Zelda: Ocarina of Time
+Exec=soh-wrapper
+Icon=com.harbourmasters.Shipwright
+Terminal=false
+Type=Application
+Categories=Game;ActionGame;
+Keywords=zelda;ocarina;harkinian;soh;n64;
+StartupNotify=true
+StartupWMClass=soh.elf

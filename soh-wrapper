@@ -1,0 +1,24 @@
+#!/bin/sh
+# Wrapper for Ship of Harkinian inside Flatpak.
+#
+# 作用：把工作目录固定到可持久化的数据目录，避免程序把配置、
+# 存档、日志写到当前目录（AppImage 的用户反馈里出现过这个问题）。
+
+set -eu
+
+# Flatpak 中 XDG 路径由 runtime 注入：
+#   XDG_DATA_HOME  -> ~/.var/app/<id>/data
+#   XDG_CONFIG_HOME-> ~/.var/app/<id>/config
+# SoH 会把 shipofharkinian.json、存档、Mods 写在 $XDG_DATA_HOME 下。
+: "${XDG_DATA_HOME:=${HOME}/.local/share}"
+SOH_DATA_DIR="${XDG_DATA_HOME}"
+
+mkdir -p "${SOH_DATA_DIR}"
+
+# 切换到数据目录，保证相对路径读写落在持久化区
+cd "${SOH_DATA_DIR}"
+
+# 兜底：确保宿主/运行时的 OpenGL 软件回退可用
+export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-0}"
+
+exec /app/bin/soh.elf "$@"

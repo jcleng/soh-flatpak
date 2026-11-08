@@ -1,0 +1,111 @@
+# Flatpak manifest for Ship of Harkinian (SoH) — Ocarina of Time PC port
+#
+# 构建方式：直接解包官方 AppImage Release，不做源码编译。
+# 上游项目：https://github.com/HarbourMasters/Shipwright
+# 官网：https://shipofharkinian.com
+#
+# 说明：本包不包含任何《塞尔达传说：时之笛》的版权 ROM。
+# 用户必须自行提供合法获得的 ROM，程序首次运行时会要求导入。
+id: com.harbourmasters.Shipwright
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: soh-wrapper
+
+finish-args:
+  # 显示：x11 + wayland（SDL2 会优先走 wayland）
+  - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  # 音频
+  - --socket=pulseaudio
+  # 网络：SoH 的多人联机 / 更新检查
+  - --share=network
+  # 显卡硬件加速（OpenGL / Vulkan）
+  - --device=dri
+  # 手柄支持（--device=all 在旧版 Flatpak 上是访问 /dev/input 的必要条件）
+  - --device=all
+  # 存档 / 配置 / Mods / ROM 导入目录
+  - --persist=ShipOfHarkinian
+
+modules:
+  # Freedesktop SDK 不自带 unsquashfs，这里单独构建后保留在 /app/bin
+  # （解包 AppImage 完毕后由 shipwright 模块在清理阶段删除）
+  - name: squashfs-tools
+    buildsystem: simple
+    build-commands:
+      - make -C squashfs-tools LZO_SUPPORT=0 XZ_SUPPORT=0 LZ4_SUPPORT=0 \
+          ZSTD_SUPPORT=1 GZIP_SUPPORT=1
+      - install -Dm755 squashfs-tools/unsquashfs /app/bin/unsquashfs
+    sources:
+      - type: archive
+        url: https://github.com/plougher/squashfs-tools/archive/refs/tags/4.6.1.tar.gz
+        sha256: 9c4974e07c61547dae14af4ed1f358b7d04618ae194e54d6be72ee126f0d2f53
+
+  - name: shipwright
+    buildsystem: simple
+    build-commands:
+      # 1. 解包 AppImage（offset 由 --appimage-offset 动态取得，按字节精确切分）
+      - |
+        set -eu
+        # file source 下载后不带可执行位，必须先 chmod
+        chmod +x ./SoH.appimage
+        OFFSET=$(./SoH.appimage --appimage-offset)
+        echo "AppImage squashfs offset = ${OFFSET}"
+        python3 - "${OFFSET}" <<'PYEOF'
+        import sys
+        off = int(sys.argv[1])
+        with open('SoH.appimage', 'rb') as src, open('soh.squashfs', 'wb') as dst:
+            src.seek(off)
+            while True:
+                chunk = src.read(1 << 20)
+                if not chunk:
+                    break
+                dst.write(chunk)
+        PYEOF
+        unsquashfs -q -d appimage-root soh.squashfs
+
+      # 2. 安装主程序与资源到 /app/bin（保持 $ORIGIN/../lib 的相对布局不变）
+      - |
+        set -eu
+        install -d ${FLATPAK_DEST}/bin
+        cp -a appimage-root/usr/bin/. ${FLATPAK_DEST}/bin/
+        # 清理上游 AppImage 里夹带的编译期残留（开发头文件 / 静态库 / cmake 配置）
+        rm -rf ${FLATPAK_DEST}/bin/include ${FLATPAK_DEST}/bin/lib
+
+      # 3. 安装自带的私有共享库
+      - |
+        set -eu
+        install -d ${FLATPAK_DEST}/lib
+        cp -a appimage-root/usr/lib/. ${FLATPAK_DEST}/lib/
+
+      # 4. 图标与桌面入口
+      - install -Dm644 icons/com.harbourmasters.Shipwright.png
+        ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/com.harbourmasters.Shipwright.png
+      - install -Dm644 com.harbourmasters.Shipwright.desktop
+        ${FLATPAK_DEST}/share/applications/com.harbourmasters.Shipwright.desktop
+      - install -Dm644 com.harbourmasters.Shipwright.metainfo.xml
+        ${FLATPAK_DEST}/share/metainfo/com.harbourmasters.Shipwright.metainfo.xml
+
+      # 5. 启动包装脚本
+      - install -Dm755 soh-wrapper ${FLATPAK_DEST}/bin/soh-wrapper
+
+      # 6. 清理：不在最终包里保留解包工具和中间产物
+      - rm -f ${FLATPAK_DEST}/bin/unsquashfs
+        soh.squashfs appimage-root/AppRun appimage-root/soh.desktop
+        appimage-root/sohIcon.png appimage-root/.DirIcon
+
+    sources:
+      - type: file
+        url: https://github.com/HarbourMasters/Shipwright/releases/download/9.3.1/SoH-Dewey-Bravo.appimage
+        sha256: e4bb775c9a0c3629ebac57e4b6ccba6d0b621d71ab201e9105aceef9141ad1f4
+        dest-filename: SoH.appimage
+      - type: file
+        path: icons/com.harbourmasters.Shipwright.png
+      - type: file
+        path: com.harbourmasters.Shipwright.desktop
+      - type: file
+        path: com.harbourmasters.Shipwright.metainfo.xml
+      - type: file
+        path: soh-wrapper

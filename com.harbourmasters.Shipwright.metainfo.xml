@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.harbourmasters.Shipwright</id>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+
+  <name>Ship of Harkinian</name>
+  <summary>Native PC port of The Legend of Zelda: Ocarina of Time</summary>
+
+  <description>
+    <p>
+      Ship of Harkinian (SoH) is a native PC port of The Legend of Zelda: Ocarina of Time,
+      built from the ZeldaRET decompilation project. It runs the original game logic at
+      high frame rates with widescreen support, high resolution rendering, and a wide range
+      of quality-of-life enhancements and mod support.
+    </p>
+    <p>
+      This is an unofficial Flatpak wrapper around the official upstream AppImage release.
+      It packages the already-compiled binary as-is.
+    </p>
+    <p>
+      IMPORTANT: This package contains no copyrighted game assets. You must supply your own
+      legally obtained copy of the Ocarina of Time ROM. The application will prompt you to
+      import a ROM on first launch.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">com.harbourmasters.Shipwright.desktop</launchable>
+
+  <url type="homepage">https://shipofharkinian.com</url>
+  <url type="bugtracker">https://github.com/HarbourMasters/Shipwright/issues</url>
+  <url type="help">https://www.shipofharkinian.com/setup-guide</url>
+
+  <developer_name>Harbour Masters</developer_name>
+
+  <categories>
+    <category>Game</category>
+    <category>ActionGame</category>
+  </categories>
+
+  <keywords>
+    <keyword>zelda</keyword>
+    <keyword>ocarina</keyword>
+    <keyword>harkinian</keyword>
+    <keyword>n64</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-fantasy">moderate</content_attribute>
+    <content_attribute id="social-chat">mild</content_attribute>
+  </content_rating>
+
+  <releases>
+    <release version="9.3.1" date="2026-10-18">
+      <description>
+        <p>Packages the upstream SoH 9.3.1 (Dewey Bravo) AppImage release.</p>
+      </description>
+    </release>
+  </releases>
+
+</component>
