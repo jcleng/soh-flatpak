@@ -1,5 +1,9 @@
 name: Build Flatpak
 
+# 创建 Release 需要写权限（默认 GITHUB_TOKEN 为只读）
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
@@ -124,4 +128,4 @@ jobs:
           name: SoH ${SOH_VERSION} Flatpak (${{ env.TAG }})
           body_path: ${{ github.workspace }}/release.txt
           files: ${{ github.workspace }}/${{ env.APP_ID }}.flatpak
-          overwrite: true
+          overwrite_files: true
