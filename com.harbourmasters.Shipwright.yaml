@@ -81,7 +81,7 @@ modules:
         cp -a appimage-root/usr/lib/. ${FLATPAK_DEST}/lib/
 
       # 4. 图标与桌面入口
-      - install -Dm644 icons/com.harbourmasters.Shipwright.png
+      - install -Dm644 com.harbourmasters.Shipwright.png
         ${FLATPAK_DEST}/share/icons/hicolor/512x512/apps/com.harbourmasters.Shipwright.png
       - install -Dm644 com.harbourmasters.Shipwright.desktop
         ${FLATPAK_DEST}/share/applications/com.harbourmasters.Shipwright.desktop
@@ -103,6 +103,7 @@ modules:
         dest-filename: SoH.appimage
       - type: file
         path: icons/com.harbourmasters.Shipwright.png
+        dest-filename: com.harbourmasters.Shipwright.png
       - type: file
         path: com.harbourmasters.Shipwright.desktop
       - type: file
